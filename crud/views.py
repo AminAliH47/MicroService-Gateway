@@ -5,7 +5,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from crud.serializers import UserSerializer
 from user_proto import user_pb2_grpc
-from user_proto.user_pb2 import User
+from user_proto.user_pb2 import User, UserRetrieveRequest, UserListRequest
+from google.protobuf.json_format import MessageToJson, MessageToDict
 
 # Config gRPC to connect gateway service to the user service
 channel = grpc.insecure_channel('localhost:50051')
@@ -14,7 +15,27 @@ stub = user_pb2_grpc.UserControllerStub(channel)
 
 class UsersList(APIView):
     def get(self, request):
-        return Response({"message": "Test"})
+        """
+        Show List of all users
+
+        :param request:
+        :return: List of all users
+        """
+        users = stub.List(UserListRequest())
+        response = [MessageToDict(user) for user in users]
+        return Response(response)
+
+
+class RetrieveUser(APIView):
+    def get(self, request, pk):
+        """
+        Get PK from URL then returns the user whose ID is equal to PK
+
+        :param pk: user Primary Key
+        :return: User object
+        """
+        response = stub.Retrieve(UserRetrieveRequest(id=pk))
+        return Response(MessageToDict(response), status=status.HTTP_200_OK)
 
 
 class CreateUser(APIView):
@@ -68,7 +89,7 @@ class UpdateUser(APIView):
                     email=serializer.data['email'], password=serializer.data['password'],
                 )
             )
-        except _InactiveRpcError as e:  # Handle Error while creating user
+        except _InactiveRpcError as e:  # Handle Error while updating user
             return Response({"Error": e.details()}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(
             {"message": "User updated successfully", "data": serializer.data},
@@ -93,7 +114,7 @@ class DeleteUser(APIView):
                     id=pk,
                 )
             )
-        except _InactiveRpcError as e:  # Handle Error while creating user
+        except _InactiveRpcError as e:  # Handle Error while deleting user
             return Response({"Error": e.details()}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(
             {"message": "User deleted successfully", },
