@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from crud.serializers import UserSerializer
 from user_proto import user_pb2_grpc
 from user_proto.user_pb2 import User, UserRetrieveRequest, UserListRequest
-from google.protobuf.json_format import MessageToJson, MessageToDict
+from google.protobuf.json_format import MessageToDict
 
 # Config gRPC to connect gateway service to the user service
 channel = grpc.insecure_channel('localhost:50051')
@@ -34,7 +34,12 @@ class RetrieveUser(APIView):
         :param pk: user Primary Key
         :return: User object
         """
-        response = stub.Retrieve(UserRetrieveRequest(id=pk))
+        try:
+            response = stub.Retrieve(UserRetrieveRequest(id=pk))
+        except _InactiveRpcError as e:  # Handle Error while creating user
+            code_status = 404 if "not found" in e.details() else 500  # get status code from error
+            return Response({"Error": e.details()}, status=code_status)
+
         return Response(MessageToDict(response), status=status.HTTP_200_OK)
 
 
@@ -46,6 +51,15 @@ class CreateUser(APIView):
 
         :param request
         :return: Created User data
+
+        ---
+            {
+              "username": "string",
+              "first_name": "string",
+              "last_name": "string",
+              "email": "string",
+              "password": "string",
+            }
         """
         data = request.data
         serializer = UserSerializer(data=data)
@@ -76,6 +90,15 @@ class UpdateUser(APIView):
         :param request
         :param pk: user primary key
         :return: Updated User data
+
+        ---
+            {
+              "username": "string",
+              "first_name": "string",
+              "last_name": "string",
+              "email": "string",
+              "password": "string",
+            }
         """
         data = request.data
         serializer = UserSerializer(data=data)
@@ -90,7 +113,8 @@ class UpdateUser(APIView):
                 )
             )
         except _InactiveRpcError as e:  # Handle Error while updating user
-            return Response({"Error": e.details()}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            code_status = 404 if "not found" in e.details() else 500  # get status code from error
+            return Response({"Error": e.details()}, status=code_status)
         return Response(
             {"message": "User updated successfully", "data": serializer.data},
             status=status.HTTP_200_OK,
@@ -115,7 +139,8 @@ class DeleteUser(APIView):
                 )
             )
         except _InactiveRpcError as e:  # Handle Error while deleting user
-            return Response({"Error": e.details()}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            code_status = 404 if "not found" in e.details() else 500  # get status code from error
+            return Response({"Error": e.details()}, status=code_status)
         return Response(
             {"message": "User deleted successfully", },
             status=status.HTTP_200_OK,
