@@ -1,12 +1,20 @@
 import grpc
-from grpc._channel import _InactiveRpcError
+from grpc._channel import (
+    _InactiveRpcError,
+    _MultiThreadedRendezvous,
+)
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from crud.serializers import UserSerializer
 from user_proto import user_pb2_grpc
-from user_proto.user_pb2 import User, UserRetrieveRequest, UserListRequest
+from user_proto.user_pb2 import (
+    User,
+    UserRetrieveRequest,
+    UserListRequest,
+)
 from google.protobuf.json_format import MessageToDict
+
 
 # Config gRPC Dev Server to connect gateway service to the user service
 channel = grpc.insecure_channel('localhost:50051')
@@ -21,8 +29,13 @@ class UsersList(APIView):
         :param request:
         :return: List of all users
         """
-        users = stub.List(UserListRequest())
-        response = [MessageToDict(user) for user in users]
+        try:
+            users = stub.List(UserListRequest())
+            response = [MessageToDict(user) for user in users]
+
+        except _MultiThreadedRendezvous as e:  # Handle Error while connecting to the server
+            return Response({"Error": e.details()}, status=500)
+
         return Response(response)
 
 
@@ -36,9 +49,15 @@ class RetrieveUser(APIView):
         """
         try:
             response = stub.Retrieve(UserRetrieveRequest(id=pk))
-        except _InactiveRpcError as e:  # Handle Error while creating user
-            code_status = 404 if "not found" in e.details() else 500  # get status code from error
+
+        except _InactiveRpcError as e:  # Handle Error while getting user
+            code_status = (
+                404 if "not found" in e.details() else 500
+            )  # get status code from error
             return Response({"Error": e.details()}, status=code_status)
+
+        except _MultiThreadedRendezvous as e:  # Handle Error while connecting to the server
+            return Response({"Error": e.details()}, status=500)
 
         return Response(MessageToDict(response), status=status.HTTP_200_OK)
 
@@ -58,7 +77,7 @@ class CreateUser(APIView):
               "first_name": "string",
               "last_name": "string",
               "email": "string",
-              "password": "string",
+              "password": "string"
             }
         """
         data = request.data
@@ -68,13 +87,22 @@ class CreateUser(APIView):
         try:
             stub.Create(
                 User(
-                    username=serializer.data['username'],
-                    first_name=serializer.data['first_name'], last_name=serializer.data['last_name'],
-                    email=serializer.data['email'], password=serializer.data['password'],
+                    username=serializer.data["username"],
+                    first_name=serializer.data["first_name"],
+                    last_name=serializer.data["last_name"],
+                    email=serializer.data["email"],
+                    password=serializer.data["password"],
                 )
             )
+
         except _InactiveRpcError as e:  # Handle Error while creating user
-            return Response({"Error": e.details()}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"Error": e.details()}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        except _MultiThreadedRendezvous as e:  # Handle Error while connecting to the server
+            return Response({"Error": e.details()}, status=500)
+
         return Response(
             {"message": "User created successfully", "data": serializer.data},
             status=status.HTTP_201_CREATED,
@@ -97,7 +125,7 @@ class UpdateUser(APIView):
               "first_name": "string",
               "last_name": "string",
               "email": "string",
-              "password": "string",
+              "password": "string"
             }
         """
         data = request.data
@@ -107,14 +135,24 @@ class UpdateUser(APIView):
         try:
             stub.Update(
                 User(
-                    id=pk, username=serializer.data['username'],
-                    first_name=serializer.data['first_name'], last_name=serializer.data['last_name'],
-                    email=serializer.data['email'], password=serializer.data['password'],
+                    id=pk,
+                    username=serializer.data["username"],
+                    first_name=serializer.data["first_name"],
+                    last_name=serializer.data["last_name"],
+                    email=serializer.data["email"],
+                    password=serializer.data["password"],
                 )
             )
+
         except _InactiveRpcError as e:  # Handle Error while updating user
-            code_status = 404 if "not found" in e.details() else 500  # get status code from error
+            code_status = (
+                404 if "not found" in e.details() else 500
+            )  # get status code from error
             return Response({"Error": e.details()}, status=code_status)
+
+        except _MultiThreadedRendezvous as e:  # Handle Error while connecting to the server
+            return Response({"Error": e.details()}, status=500)
+
         return Response(
             {"message": "User updated successfully", "data": serializer.data},
             status=status.HTTP_200_OK,
@@ -138,10 +176,19 @@ class DeleteUser(APIView):
                     id=pk,
                 )
             )
+
         except _InactiveRpcError as e:  # Handle Error while deleting user
-            code_status = 404 if "not found" in e.details() else 500  # get status code from error
+            code_status = (
+                404 if "not found" in e.details() else 500
+            )  # get status code from error
             return Response({"Error": e.details()}, status=code_status)
+
+        except _MultiThreadedRendezvous as e:  # Handle Error while connecting to the server
+            return Response({"Error": e.details()}, status=500)
+
         return Response(
-            {"message": "User deleted successfully", },
+            {
+                "message": "User deleted successfully",
+            },
             status=status.HTTP_200_OK,
         )
