@@ -15,8 +15,9 @@ from user_proto.user_pb2 import (
 )
 from google.protobuf.json_format import MessageToDict
 
-# Config gRPC to connect gateway service to the user service
-channel = grpc.insecure_channel("localhost:50051")
+
+# Config gRPC Dev Server to connect gateway service to the user service
+channel = grpc.insecure_channel('localhost:50051')
 stub = user_pb2_grpc.UserControllerStub(channel)
 
 
