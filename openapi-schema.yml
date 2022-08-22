@@ -1,0 +1,138 @@
+openapi: 3.0.2
+info:
+  title: ''
+  version: ''
+paths:
+  /:
+    get:
+      operationId: listUsers
+      description: 'Show List of all users
+
+
+        :param request:
+
+        :return: List of all users'
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {}
+          description: ''
+      tags:
+      - ''
+  /{id}/:
+    get:
+      operationId: retrieveRetrieveUser
+      description: 'Get PK from URL then returns the user whose ID is equal to PK
+
+
+        :param pk: user Primary Key
+
+        :return: User object'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - '{id}'
+  /create/:
+    post:
+      operationId: createCreateUser
+      description: 'Get data from client and pass it to the Users Service
+
+        then create new user
+
+
+        :param request
+
+        :return: Created User data'
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          multipart/form-data:
+            schema: {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - create
+  /update/{id}/:
+    put:
+      operationId: updateUpdateUser
+      description: 'Get data from client and pass it to the Users Service
+
+        then update user with passed PK (Primary Key)
+
+
+        :param request
+
+        :param pk: user primary key
+
+        :return: Updated User data'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema: {}
+          application/x-www-form-urlencoded:
+            schema: {}
+          multipart/form-data:
+            schema: {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      tags:
+      - update
+  /delete/{id}/:
+    delete:
+      operationId: destroyDeleteUser
+      description: 'Get primary key from URL and pass it to the Users Service,
+
+        then delete user with passed PK (Primary Key)
+
+
+        :param request
+
+        :param pk: user primary key
+
+        :return: Deleted User'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ''
+        schema:
+          type: string
+      responses:
+        '204':
+          description: ''
+      tags:
+      - delete
