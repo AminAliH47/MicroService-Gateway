@@ -1,13 +1,15 @@
-import grpc
 from grpc._channel import (
     _InactiveRpcError,
     _MultiThreadedRendezvous,
 )
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from server.connect_grpc import connect_users_service
+from jwt_auth.authentication import CustomJWTAuthentication
+from rest_framework_simplejwt.tokens import RefreshToken
 from crud.serializers import UserSerializer
-from user_proto import user_pb2_grpc
 from user_proto.user_pb2 import (
     User,
     UserRetrieveRequest,
@@ -16,11 +18,14 @@ from user_proto.user_pb2 import (
 from google.protobuf.json_format import MessageToDict
 
 # Config gRPC to connect gateway service to the user service
-channel = grpc.insecure_channel("localhost:50051")
-stub = user_pb2_grpc.UserControllerStub(channel)
+stub = connect_users_service()
 
 
 class UsersList(APIView):
+    # Add Authentication class to authenticate user with JWT
+    authentication_classes = (CustomJWTAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request):
         """
         Show List of all users
@@ -39,6 +44,10 @@ class UsersList(APIView):
 
 
 class RetrieveUser(APIView):
+    # Add Authentication class to authenticate user with JWT
+    authentication_classes = (CustomJWTAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request, pk):
         """
         Get PK from URL then returns the user whose ID is equal to PK
@@ -62,6 +71,7 @@ class RetrieveUser(APIView):
 
 
 class CreateUser(APIView):
+
     def post(self, request):
         """
         Get data from client and pass it to the Users Service
@@ -82,9 +92,10 @@ class CreateUser(APIView):
         data = request.data
         serializer = UserSerializer(data=data)
         serializer.is_valid(raise_exception=True)
+
         # Send data to users service
         try:
-            stub.Create(
+            user = stub.Create(
                 User(
                     username=serializer.data["username"],
                     first_name=serializer.data["first_name"],
@@ -102,13 +113,28 @@ class CreateUser(APIView):
         except _MultiThreadedRendezvous as e:  # Handle Error while connecting to the server
             return Response({"Error": e.details()}, status=500)
 
+        refresh = RefreshToken.for_user(user)
+        refresh_token = str(refresh)
+        access_token = str(refresh.access_token)
+
+        data = {
+            "message": "User created successfully",
+            "refresh_token": refresh_token,
+            "access_token": access_token,
+            "user": MessageToDict(user),
+        }
+
         return Response(
-            {"message": "User created successfully", "data": serializer.data},
+            data,
             status=status.HTTP_201_CREATED,
         )
 
 
 class UpdateUser(APIView):
+    # Add Authentication class to authenticate user with JWT
+    authentication_classes = (CustomJWTAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
     def put(self, request, pk):
         """
         Get data from client and pass it to the Users Service
@@ -159,6 +185,10 @@ class UpdateUser(APIView):
 
 
 class DeleteUser(APIView):
+    # Add Authentication class to authenticate user with JWT
+    authentication_classes = (CustomJWTAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
     def delete(self, request, pk):
         """
         Get primary key from URL and pass it to the Users Service,

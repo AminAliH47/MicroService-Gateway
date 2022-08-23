@@ -13,28 +13,24 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.views.generic import TemplateView
-from rest_framework.schemas import get_schema_view
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+from rest_framework.permissions import AllowAny
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Gateway APIs Documentation",
+        default_version="1.0.0",
+    ),
+    permission_classes=[AllowAny,]
+)
 
 urlpatterns = [
     path("", include("crud.urls")),
+    # JWT Auth
+    path("auth/", include("jwt_auth.urls")),
     # Swagger Document APIs
-    path(
-        "openapi",
-        get_schema_view(
-            title="Gateway APIs Docs",
-            description="API Docs for all endpoints.",
-            version="1.0.0",
-        ),
-        name="openapi-schema",
-    ),
-    path(
-        "docs/",
-        TemplateView.as_view(
-            template_name="crud/swagger-ui.html",
-            extra_context={"schema_url": "openapi-schema"},
-        ),
-        name="swagger-ui-docs",
-    ),
+    path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 ]
