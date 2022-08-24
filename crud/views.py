@@ -16,9 +16,13 @@ from user_proto.user_pb2 import (
     UserListRequest,
 )
 from google.protobuf.json_format import MessageToDict
+import logging
 
 # Config gRPC to connect gateway service to the user service
 stub = connect_users_service()
+
+# Config logger
+logger = logging.getLogger(__name__)
 
 
 class UsersList(APIView):
@@ -41,8 +45,14 @@ class UsersList(APIView):
             response = [MessageToDict(user) for user in users]
 
         except _MultiThreadedRendezvous as e:  # Handle Error while connecting to the server
+            # Log error in debug.log
+            logger.error(e.details())
+            
             return Response({"Error": e.details()}, status=500)
-
+        
+        # Log information
+        logger.info("List of users")
+        
         return Response(response)
 
 
@@ -65,14 +75,23 @@ class RetrieveUser(APIView):
             response = stub.Retrieve(UserRetrieveRequest(id=pk))
 
         except _InactiveRpcError as e:  # Handle Error while getting user
+            # Log error in debug.log
+            logger.error(e.details())
+            
             code_status = (
                 404 if "not found" in e.details() else 500
             )  # get status code from error
             return Response({"Error": e.details()}, status=code_status)
 
         except _MultiThreadedRendezvous as e:  # Handle Error while connecting to the server
+            # Log error in debug.log
+            logger.error(e.details())
+        
             return Response({"Error": e.details()}, status=500)
 
+        # Log information in debug.log
+        logger.info("Retrieve a user")
+        
         return Response(MessageToDict(response), status=status.HTTP_200_OK)
 
 
@@ -114,11 +133,17 @@ class CreateUser(APIView):
             )
 
         except _InactiveRpcError as e:  # Handle Error while creating user
+            # Log error in debug.log
+            logger.error(e.details())
+            
             return Response(
                 {"Error": e.details()}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
         except _MultiThreadedRendezvous as e:  # Handle Error while connecting to the server
+            # Log error in debug.log
+            logger.error(e.details())
+            
             return Response({"Error": e.details()}, status=500)
 
         refresh = RefreshToken.for_user(user)
@@ -131,6 +156,9 @@ class CreateUser(APIView):
             "access_token": access_token,
             "user": MessageToDict(user),
         }
+
+        # Log information in debug.log
+        logger.info("User created!")
 
         return Response(
             data,
@@ -181,13 +209,22 @@ class UpdateUser(APIView):
             )
 
         except _InactiveRpcError as e:  # Handle Error while updating user
+            # Log error in debug.log
+            logger.error(e.details())
+            
             code_status = (
                 404 if "not found" in e.details() else 500
             )  # get status code from error
             return Response({"Error": e.details()}, status=code_status)
 
         except _MultiThreadedRendezvous as e:  # Handle Error while connecting to the server
+            # Log error in debug.log
+            logger.error(e.details())
+            
             return Response({"Error": e.details()}, status=500)
+
+        # Log information in debug.log
+        logger.info("User updated!")
 
         return Response(
             {"message": "User updated successfully", "detail": MessageToDict(user)},
@@ -218,13 +255,22 @@ class DeleteUser(APIView):
             )
 
         except _InactiveRpcError as e:  # Handle Error while deleting user
+            # Log error in debug.log
+            logger.error(e.details())
+            
             code_status = (
                 404 if "not found" in e.details() else 500
             )  # get status code from error
             return Response({"Error": e.details()}, status=code_status)
 
         except _MultiThreadedRendezvous as e:  # Handle Error while connecting to the server
+            # Log error in debug.log
+            logger.error(e.details())
+            
             return Response({"Error": e.details()}, status=500)
+
+        # Log information in debug.log
+        logger.info("User Deleted!")
 
         return Response(
             {
