@@ -14,6 +14,11 @@ stub = connect_users_service()
 
 class LoginView(APIView):
     def post(self, request):
+        """
+        Login registered user with username and password
+
+        :return: User data and JWT refresh and access token
+        """
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

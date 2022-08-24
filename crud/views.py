@@ -158,7 +158,7 @@ class UpdateUser(APIView):
         serializer.is_valid(raise_exception=True)
         # Send data to users service
         try:
-            stub.Update(
+            user = stub.Update(
                 User(
                     id=pk,
                     username=serializer.data["username"],
@@ -179,7 +179,7 @@ class UpdateUser(APIView):
             return Response({"Error": e.details()}, status=500)
 
         return Response(
-            {"message": "User updated successfully", "data": serializer.data},
+            {"message": "User updated successfully", "detail": MessageToDict(user)},
             status=status.HTTP_200_OK,
         )
 
