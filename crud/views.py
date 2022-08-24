@@ -26,6 +26,9 @@ class UsersList(APIView):
     authentication_classes = (CustomJWTAuthentication,)
     permission_classes = (IsAuthenticated,)
 
+    # Serializer class for view
+    serializer_class = UserSerializer
+
     def get(self, request):
         """
         Show List of all users
@@ -47,6 +50,9 @@ class RetrieveUser(APIView):
     # Add Authentication class to authenticate user with JWT
     authentication_classes = (CustomJWTAuthentication,)
     permission_classes = (IsAuthenticated,)
+
+    # Serializer class for view
+    serializer_class = UserSerializer
 
     def get(self, request, pk):
         """
@@ -71,6 +77,8 @@ class RetrieveUser(APIView):
 
 
 class CreateUser(APIView):
+    # Serializer class for view
+    serializer_class = UserSerializer
 
     def post(self, request):
         """
@@ -134,6 +142,9 @@ class UpdateUser(APIView):
     # Add Authentication class to authenticate user with JWT
     authentication_classes = (CustomJWTAuthentication,)
     permission_classes = (IsAuthenticated,)
+
+    # Serializer class for view
+    serializer_class = UserSerializer
 
     def put(self, request, pk):
         """

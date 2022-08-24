@@ -13,6 +13,9 @@ stub = connect_users_service()
 
 
 class LoginView(APIView):
+    # Serializer class for view
+    serializer_class = UserLoginSerializer
+
     def post(self, request):
         """
         Login registered user with username and password
