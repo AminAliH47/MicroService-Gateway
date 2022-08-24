@@ -1,3 +1,4 @@
+from drf_spectacular.contrib.rest_framework_simplejwt import SimpleJWTScheme
 from grpc._channel import _InactiveRpcError
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import (
@@ -30,3 +31,7 @@ class CustomJWTAuthentication(JWTAuthentication):
             raise AuthenticationFailed("User not found", code=404)
 
         return user
+
+
+class SimpleJWTTokenUserScheme(SimpleJWTScheme):
+    target_class = CustomJWTAuthentication
