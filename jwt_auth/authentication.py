@@ -27,6 +27,6 @@ class CustomJWTAuthentication(JWTAuthentication):
                 )
             )
         except _InactiveRpcError:
-            raise AuthenticationFailed("User not found", code="user_not_found")
+            raise AuthenticationFailed("User not found", code=404)
 
         return user
