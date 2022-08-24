@@ -5,7 +5,6 @@ from jwt_auth import views
 app_name = "jwt_auth"
 
 urlpatterns = (
-    path('token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
     path('login/', views.LoginView.as_view(), name="login")
 )
