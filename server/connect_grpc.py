@@ -8,7 +8,7 @@ def connect_users_service():
 
     :return: User controller
     """
-    channel = grpc.insecure_channel("localhost:50051")
+    channel = grpc.insecure_channel("10.5.0.1:5000")
     stub = user_pb2_grpc.UserControllerStub(channel)
 
     return stub
