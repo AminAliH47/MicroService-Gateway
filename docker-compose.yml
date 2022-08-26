@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  gateway:
+    build: .
+    container_name: gateway
+    restart: always
+    ports:
+      - "8041:8041"
+    volumes:
+      - type: bind
+        source: .
+        target: /home/myuser/gateway
+    environment:
+      - SECRET_KEY=django-insecure-a0j5=&f!xe13@(#u5h(%b_p&h80s&g7+#3i38)h#%9x8sk_*y^
+      - DEBUG=True
+    networks:
+      - users_network
+
+networks:
+  users_network:
+    external:
+      name: users_network
