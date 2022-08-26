@@ -17,6 +17,7 @@ To send and get users datas, the Users service must be active.
 
 [Users Service](https://github.com/AminAliH47/MicroService-Users)
 
+<hr>
 
 ## 🏁 Run the service
 **Gateway service is dockerized.** 
@@ -44,6 +45,7 @@ and use the Gateway service.
 
 also you can test APIs with **Swagger UI** docs in [10.5.0.1:8041/docs/](http://10.5.0.1:8041/docs/) URL
 
+<hr>
 
 ## ✅ Use the project
 Now you can use and test Gateway service. 
